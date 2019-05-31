@@ -1,0 +1,112 @@
+create spinehead0,spineneck0
+create spinehead1,spineneck1
+create spinehead2,spineneck2
+create spinehead3,spineneck3
+create spinehead4,spineneck4
+create spinehead5,spineneck5
+create spinehead6,spineneck6
+create spinehead7,spineneck7
+create spinehead8,spineneck8
+create spinehead9,spineneck9
+create spinehead10,spineneck10
+create spinehead11,spineneck11
+create spinehead12,spineneck12
+create spinehead13,spineneck13
+create spinehead14,spineneck14
+create spinehead15,spineneck15
+create spinehead16,spineneck16
+create spinehead17,spineneck17
+create spinehead18,spineneck18
+create spinehead19,spineneck19
+
+objref spineheadarray[20]
+objref spineneckarray[20]
+spinehead0 spineheadarray[0] = new SectionRef()
+spinehead1 spineheadarray[1] = new SectionRef()
+spinehead2 spineheadarray[2] = new SectionRef()
+spinehead3 spineheadarray[3] = new SectionRef()
+spinehead4 spineheadarray[4] = new SectionRef()
+spinehead5 spineheadarray[5] = new SectionRef()
+spinehead6 spineheadarray[6] = new SectionRef()
+spinehead7 spineheadarray[7] = new SectionRef()
+spinehead8 spineheadarray[8] = new SectionRef()
+spinehead9 spineheadarray[9] = new SectionRef()
+spinehead10 spineheadarray[10] = new SectionRef()
+spinehead11 spineheadarray[11] = new SectionRef()
+spinehead12 spineheadarray[12] = new SectionRef()
+spinehead13 spineheadarray[13] = new SectionRef()
+spinehead14 spineheadarray[14] = new SectionRef()
+spinehead15 spineheadarray[15] = new SectionRef()
+spinehead16 spineheadarray[16] = new SectionRef()
+spinehead17 spineheadarray[17] = new SectionRef()
+spinehead18 spineheadarray[18] = new SectionRef()
+spinehead19 spineheadarray[19] = new SectionRef()
+
+spineneck0 spineneckarray[0] = new SectionRef()
+spineneck1 spineneckarray[1] = new SectionRef()
+spineneck2 spineneckarray[2] = new SectionRef()
+spineneck3 spineneckarray[3] = new SectionRef()
+spineneck4 spineneckarray[4] = new SectionRef()
+spineneck5 spineneckarray[5] = new SectionRef()
+spineneck6 spineneckarray[6] = new SectionRef()
+spineneck7 spineneckarray[7] = new SectionRef()
+spineneck8 spineneckarray[8] = new SectionRef()
+spineneck9 spineneckarray[9] = new SectionRef()
+spineneck10 spineneckarray[10] = new SectionRef()
+spineneck11 spineneckarray[11] = new SectionRef()
+spineneck12 spineneckarray[12] = new SectionRef()
+spineneck13 spineneckarray[13] = new SectionRef()
+spineneck14 spineneckarray[14] = new SectionRef()
+spineneck15 spineneckarray[15] = new SectionRef()
+spineneck16 spineneckarray[16] = new SectionRef()
+spineneck17 spineneckarray[17] = new SectionRef()
+spineneck18 spineneckarray[18] = new SectionRef()
+spineneck19 spineneckarray[19] = new SectionRef()
+
+neckdiam=0.125
+headradius=0.5
+neckleng=3.0625
+
+connect spinehead0(0),spineneck0(1)
+connect spinehead1(0),spineneck1(1)
+connect spinehead2(0),spineneck2(1)
+connect spinehead3(0),spineneck3(1)
+connect spinehead4(0),spineneck4(1)
+connect spinehead5(0),spineneck5(1)
+connect spinehead6(0),spineneck6(1)
+connect spinehead7(0),spineneck7(1)
+connect spinehead8(0),spineneck8(1)
+connect spinehead9(0),spineneck9(1)
+connect spinehead10(0),spineneck10(1)
+connect spinehead11(0),spineneck11(1)
+connect spinehead12(0),spineneck12(1)
+connect spinehead13(0),spineneck13(1)
+connect spinehead14(0),spineneck14(1)
+connect spinehead15(0),spineneck15(1)
+connect spinehead16(0),spineneck16(1)
+connect spinehead17(0),spineneck17(1)
+connect spinehead18(0),spineneck18(1)
+connect spinehead19(0),spineneck19(1)
+	
+
+for ii=0,19 {
+	spineheadarray[ii].sec {  nseg=7
+             pt3dclear()
+             for i=0,nseg-1 {
+                tx=-(i*2*headradius)/(nseg-1)
+                td=2*sqrt(headradius^2-(tx+headradius)^2)
+                if (td<neckdiam) {
+                       td = neckdiam
+                }
+                pt3dadd(tx,0,0,td)
+             }
+          }
+
+	spineneckarray[ii].sec { nseg=7
+            pt3dclear()
+            for j = 0,nseg-1 {
+               tx=(j*neckleng)/(nseg-1)
+               pt3dadd(tx,0,0,neckdiam)
+            }
+          }
+}

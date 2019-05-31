@@ -1,0 +1,478 @@
+// this file contains a number of objects that are used in the simulations
+// they must be created before they can be referenced in the code
+
+numsecs = tot_nsegs + 800
+
+double vrest[numsecs]   //number in brackets is total number of sections
+double vss[numsecs]
+double peakv[numsecs], synint[numsecs]
+double gmax[numsecs], old_gmax[numsecs]
+
+// lists for spine definitions
+
+objref primary_apical_list
+primary_apical_list = new SectionList()
+//somaA primary_apical_list.append
+dendA5_0 primary_apical_list.append 
+dendA5_01 primary_apical_list.append 
+dendA5_011 primary_apical_list.append 
+dendA5_0111 primary_apical_list.append 
+dendA5_01111 primary_apical_list.append 
+dendA5_011111 primary_apical_list.append 
+dendA5_0111111 primary_apical_list.append 
+dendA5_01111111 primary_apical_list.append 
+dendA5_011111111 primary_apical_list.append 
+dendA5_0111111111 primary_apical_list.append 
+dendA5_01111111111 primary_apical_list.append 
+dendA5_011111111111 primary_apical_list.append 
+dendA5_0111111111111 primary_apical_list.append 
+dendA5_01111111111111 primary_apical_list.append 
+dendA5_011111111111111 primary_apical_list.append 
+dendA5_0111111111111111 primary_apical_list.append 
+dendA5_01111111111111111 primary_apical_list.append 
+
+objref tuft
+tuft = new SectionList()
+dendA5_01111111111111111 tuft.subtree()
+dendA5_01111111111111111 tuft.remove()
+
+objref no_spines
+no_spines = new SectionList()
+dendA1_0 no_spines.append()
+dendA1_01 no_spines.append()
+dendA1_010 no_spines.append()
+dendA2_0 no_spines.append()
+dendA2_01 no_spines.append()
+dendA2_010 no_spines.append()
+dendA3_0 no_spines.append()
+dendA3_00 no_spines.append()
+dendA3_01 no_spines.append()
+dendA4_0 no_spines.append()
+dendA5_0 no_spines.append() 
+dendA5_01 no_spines.append() 
+dendA5_011 no_spines.append() 
+
+objref basal_list
+basal_list = new SectionList()
+dendA1_0 basal_list.append()
+dendA1_01 basal_list.append()
+dendA1_010 basal_list.append()
+dendA2_0 basal_list.append()
+dendA2_01 basal_list.append()
+dendA2_010 basal_list.append()
+dendA3_0 basal_list.append()
+dendA3_00 basal_list.append()
+dendA3_01 basal_list.append()
+dendA4_0 basal_list.append()
+
+objref apical_list
+apical_list = new SectionList()
+dendA5_0 apical_list.append() 
+dendA5_01 apical_list.append() 
+dendA5_011 apical_list.append() 
+
+objref basals
+basals = new SectionList()
+access dendA1_0
+basals.subtree()
+access dendA2_0
+basals.subtree()
+access dendA3_0
+basals.subtree()
+access dendA4_0
+basals.subtree()
+dendA1_0 basals.remove()
+dendA1_01 basals.remove()
+dendA1_010 basals.remove()
+dendA2_0 basals.remove()
+dendA2_01 basals.remove()
+dendA2_010 basals.remove()
+dendA3_0 basals.remove()
+dendA3_00 basals.remove()
+dendA3_01 basals.remove()
+dendA4_0 basals.remove()
+
+objref med_spines_rad
+med_spines_rad = new SectionList()
+dendA5_0111 med_spines_rad.append()		//medium spiny
+dendA5_01111 med_spines_rad.append()		//medium spiny 
+dendA5_011111 med_spines_rad.append()		//medium spiny
+dendA5_0111111 med_spines_rad.append()		//medium spiny 
+dendA5_01111111 med_spines_rad.append()		//medium spiny 
+dendA5_011111111 med_spines_rad.append()		//medium spiny 
+dendA5_0111111111 med_spines_rad.append()		//medium spiny
+dendA5_01111111111 med_spines_rad.append()		//medium spiny
+dendA5_011111111111 med_spines_rad.append()		//medium spiny
+
+objref med_spines_LM
+med_spines_LM = new SectionList()
+dendA5_0111111111111111111 med_spines_LM.append()	//medium spiny
+dendA5_011111111111111110 med_spines_LM.append()	//medium spiny
+
+objref max_spines_rad
+max_spines_rad = new SectionList()
+dendA5_0111111111111 max_spines_rad.append()		//very spiny
+dendA5_01111111111111 max_spines_rad.append()		//very spiny
+dendA5_011111111111111 max_spines_rad.append()		//very spiny
+dendA5_0111111111111111 max_spines_rad.append()		//very spiny 
+dendA5_01111111111111111 max_spines_rad.append()	//very spiny
+dendA5_011111111111111111 max_spines_rad.append()	//very spiny
+
+objref thin_rad
+thin_rad = new SectionList()
+access dendA5_0
+thin_rad.subtree()
+dendA5_0 thin_rad.remove()
+dendA5_01 thin_rad.remove() 
+dendA5_011 thin_rad.remove()
+dendA5_0111 thin_rad.remove()		//medium spiny
+dendA5_01111 thin_rad.remove()		//medium spiny 
+dendA5_011111 thin_rad.remove()		//medium spiny
+dendA5_0111111 thin_rad.remove()		//medium spiny 
+dendA5_01111111 thin_rad.remove()	//medium spiny 
+dendA5_011111111 thin_rad.remove()		//medium spiny 
+dendA5_0111111111 thin_rad.remove()		//medium spiny
+dendA5_01111111111 thin_rad.remove()		//medium spiny
+dendA5_011111111111 thin_rad.remove()	//medium spiny
+dendA5_0111111111111 thin_rad.remove()		//very spiny
+dendA5_01111111111111 thin_rad.remove()		//very spiny
+dendA5_011111111111111 thin_rad.remove()		//very spiny
+dendA5_0111111111111111 thin_rad.remove()		//very spiny 
+dendA5_01111111111111111 thin_rad.remove()	//very spiny
+dendA5_011111111111111111 thin_rad.remove()	//very spiny
+dendA5_0111111111111111111 thin_rad.remove()	//medium spiny
+dendA5_011111111111111110 thin_rad.remove()	//medium spiny
+dendA5_01111111111111110 thin_rad.remove()
+dendA5_0111111111111111110 thin_rad.remove()
+dendA5_01111111111111111110 thin_rad.remove()
+dendA5_011111111111111111100 thin_rad.remove()
+dendA5_011111111111111111101 thin_rad.remove()
+dendA5_0111111111111111111010 thin_rad.remove()
+dendA5_0111111111111111111011 thin_rad.remove()
+dendA5_01111111111111111111 thin_rad.remove()
+dendA5_011111111111111111110 thin_rad.remove()
+dendA5_011111111111111111111 thin_rad.remove()
+dendA5_0111111111111111111110 thin_rad.remove()
+dendA5_0111111111111111111111 thin_rad.remove()
+dendA5_0111111111111111100 thin_rad.remove()
+dendA5_0111111111111111101 thin_rad.remove()
+dendA5_01111111111111111010 thin_rad.remove()
+dendA5_01111111111111111011 thin_rad.remove()
+dendA5_011111111111111110110 thin_rad.remove()
+dendA5_011111111111111110111 thin_rad.remove()
+
+objref thin_LM
+thin_LM = new SectionList()
+dendA5_01111111111111110 thin_LM.append()
+dendA5_0111111111111111110 thin_LM.append()
+dendA5_01111111111111111110 thin_LM.append()
+dendA5_011111111111111111100 thin_LM.append()
+dendA5_011111111111111111101 thin_LM.append()
+dendA5_0111111111111111111010 thin_LM.append()
+dendA5_0111111111111111111011 thin_LM.append()
+dendA5_01111111111111111111 thin_LM.append()
+dendA5_011111111111111111110 thin_LM.append()
+dendA5_011111111111111111111 thin_LM.append()
+dendA5_0111111111111111111110 thin_LM.append()
+dendA5_0111111111111111111111 thin_LM.append()
+dendA5_0111111111111111100 thin_LM.append()
+dendA5_0111111111111111101 thin_LM.append()
+dendA5_01111111111111111010 thin_LM.append()
+dendA5_01111111111111111011 thin_LM.append()
+dendA5_011111111111111110110 thin_LM.append()
+dendA5_011111111111111110111 thin_LM.append()
+
+objref main_dendrites
+main_dendrites = new SectionList()
+somaA main_dendrites.children()
+
+objref all_dendrites
+all_dendrites = new SectionList()
+somaA all_dendrites.append()
+dendA1_0 all_dendrites.subtree()
+dendA2_0 all_dendrites.subtree()
+dendA3_0 all_dendrites.subtree()
+dendA4_0 all_dendrites.subtree()
+dendA5_0 all_dendrites.subtree()
+
+objref apicals
+apicals = new SectionList()
+dendA5_0 apicals.subtree()
+
+objref new_basals
+new_basals = new SectionList()
+dendA1_0 new_basals.subtree()
+dendA2_0 new_basals.subtree()
+dendA3_0 new_basals.subtree()
+dendA4_0 new_basals.subtree()
+
+objref basals1
+basals1 = new SectionList()
+dendA1_0 basals1.subtree()
+
+objref basals2
+basals2 = new SectionList()
+dendA2_0 basals2.subtree()
+
+objref basals3
+basals3 = new SectionList()
+dendA3_0 basals3.subtree()
+
+objref basals4
+basals4 = new SectionList()
+dendA4_0 basals4.subtree()
+
+objref apicals1
+apicals1 = new SectionList()
+dendA5_0 apicals1.append()
+dendA5_00 apicals1.append()
+dendA5_01 apicals1.append()
+dendA5_010 apicals1.append()
+dendA5_0100 apicals1.append()
+dendA5_0101 apicals1.append()
+dendA5_011 apicals1.append()
+dendA5_0110 apicals1.append()
+dendA5_01100 apicals1.append()
+dendA5_01101 apicals1.append()
+dendA5_011010 apicals1.append()
+
+objref apicals2
+apicals2 = new SectionList()
+dendA5_011011 apicals2.append()
+dendA5_0110110 apicals2.append()
+dendA5_0110111 apicals2.append()
+dendA5_0111 apicals2.append()
+dendA5_01110 apicals2.append()
+dendA5_01111 apicals2.append()
+dendA5_011110 apicals2.append()
+dendA5_0111100 apicals2.append()
+dendA5_0111101 apicals2.append()
+dendA5_011111 apicals2.append()
+dendA5_0111110 apicals2.append()
+dendA5_01111100 apicals2.append()
+dendA5_01111101 apicals2.append()
+dendA5_011111010 apicals2.append()
+dendA5_011111011 apicals2.append()
+
+objref apicals3
+apicals3 = new SectionList()
+dendA5_0111110110 apicals3.append()
+dendA5_0111110111 apicals3.append()
+dendA5_0111111 apicals3.append()
+dendA5_01111110 apicals3.append()
+dendA5_01111111 apicals3.append()
+dendA5_011111110 apicals3.append()
+dendA5_011111111 apicals3.append()
+dendA5_0111111110 apicals3.append()
+dendA5_01111111100 apicals3.append()
+dendA5_01111111101 apicals3.append()
+dendA5_0111111111 apicals3.append()
+dendA5_01111111110 apicals3.append()
+dendA5_01111111111 apicals3.append()
+dendA5_011111111110 apicals3.append()
+dendA5_011111111111 apicals3.append()
+dendA5_0111111111110 apicals3.append()
+dendA5_01111111111100 apicals3.append()
+dendA5_01111111111101 apicals3.append()
+dendA5_0111111111111 apicals3.append()
+dendA5_01111111111110 apicals3.append()
+dendA5_011111111111100 apicals3.append()
+
+objref apicals4
+apicals4 = new SectionList()
+dendA5_011111111111101 apicals4.append()
+dendA5_0111111111111010 apicals4.append()
+dendA5_01111111111110100 apicals4.append()
+dendA5_01111111111110101 apicals4.append()
+dendA5_0111111111111011 apicals4.append()
+dendA5_01111111111111 apicals4.append()
+dendA5_011111111111110 apicals4.append()
+dendA5_011111111111111 apicals4.append()
+dendA5_0111111111111110 apicals4.append()
+dendA5_0111111111111111 apicals4.append()
+dendA5_01111111111111110 apicals4.append()
+dendA5_01111111111111111 apicals4.append()
+dendA5_011111111111111110 apicals4.append()
+dendA5_0111111111111111100 apicals4.append()
+dendA5_0111111111111111101 apicals4.append()
+dendA5_01111111111111111010 apicals4.append()
+dendA5_01111111111111111011 apicals4.append()
+dendA5_011111111111111110110 apicals4.append()
+
+objref apicals5
+apicals5 = new SectionList()
+dendA5_011111111111111110111 apicals5.append()
+dendA5_011111111111111111 apicals5.append()
+dendA5_0111111111111111110 apicals5.append()
+dendA5_0111111111111111111 apicals5.append()
+dendA5_01111111111111111110 apicals5.append()
+dendA5_011111111111111111100 apicals5.append()
+dendA5_011111111111111111101 apicals5.append()
+dendA5_0111111111111111111010 apicals5.append()
+dendA5_0111111111111111111011 apicals5.append()
+dendA5_01111111111111111111 apicals5.append()
+dendA5_011111111111111111110 apicals5.append()
+dendA5_011111111111111111111 apicals5.append()
+dendA5_0111111111111111111110 apicals5.append()
+dendA5_0111111111111111111111 apicals5.append()
+
+basalno=74
+apicno=79
+
+objref dend[basalno]
+
+dendA1_0 dend[0] = new SectionRef()
+dendA1_00 dend[1] = new SectionRef()
+dendA1_01 dend[2] = new SectionRef()
+dendA1_010 dend[3] = new SectionRef()
+dendA1_0100 dend[4] = new SectionRef()
+dendA1_01000 dend[5] = new SectionRef()
+dendA1_01001 dend[6] = new SectionRef()
+dendA1_0101 dend[7] = new SectionRef()
+dendA1_01010 dend[8] = new SectionRef()
+dendA1_01011 dend[9] = new SectionRef()
+dendA1_011 dend[10] = new SectionRef()
+dendA1_0110 dend[11] = new SectionRef()
+dendA1_01100 dend[12] = new SectionRef()
+dendA1_01101 dend[13] = new SectionRef()
+dendA1_0111 dend[14] = new SectionRef()
+dendA2_0 dend[15] = new SectionRef()
+dendA2_00 dend[16] = new SectionRef()
+dendA2_01 dend[17] = new SectionRef()
+dendA2_010 dend[18] = new SectionRef()
+dendA2_0100 dend[19] = new SectionRef()
+dendA2_01000 dend[20] = new SectionRef()
+dendA2_01001 dend[21] = new SectionRef()
+dendA2_0101 dend[22] = new SectionRef()
+dendA2_01010 dend[23] = new SectionRef()
+dendA2_010100 dend[24] = new SectionRef()
+dendA2_010101 dend[25] = new SectionRef()
+dendA2_0101010 dend[26] = new SectionRef()
+dendA2_01010100 dend[27] = new SectionRef()
+dendA2_01010101 dend[28] = new SectionRef()
+dendA2_0101011 dend[29] = new SectionRef()
+dendA2_01011 dend[30] = new SectionRef()
+dendA2_010110 dend[31] = new SectionRef()
+dendA2_010111 dend[32] = new SectionRef()
+dendA2_0101110 dend[33] = new SectionRef()
+dendA2_0101111 dend[34] = new SectionRef()
+dendA2_011 dend[35] = new SectionRef() 
+dendA2_0110 dend[36] = new SectionRef()
+dendA2_01100 dend[37] = new SectionRef()
+dendA2_01101 dend[38] = new SectionRef()
+dendA2_0111 dend[39] = new SectionRef()
+dendA2_01110 dend[40] = new SectionRef()
+dendA2_01111 dend[41] = new SectionRef()
+dendA2_011110 dend[42] = new SectionRef()
+dendA2_011111 dend[43] = new SectionRef()
+dendA2_0111110 dend[44] = new SectionRef()
+dendA2_0111111 dend[45] = new SectionRef()
+dendA3_0 dend[46] = new SectionRef()
+dendA3_00 dend[47] = new SectionRef()
+dendA3_000 dend[48] = new SectionRef()
+dendA3_001 dend[49] = new SectionRef()
+dendA3_0010 dend[50] = new SectionRef()
+dendA3_0011 dend[51] = new SectionRef()
+dendA3_00110 dend[52] = new SectionRef()
+dendA3_00111 dend[53] = new SectionRef()
+dendA3_01 dend[54] = new SectionRef()
+dendA3_010 dend[55] = new SectionRef()
+dendA3_0100 dend[56] = new SectionRef()
+dendA3_0101 dend[57] = new SectionRef()
+dendA3_011 dend[58] = new SectionRef()
+dendA3_0110 dend[59] = new SectionRef()
+dendA3_0111 dend[60] = new SectionRef()
+dendA4_0 dend[61] = new SectionRef()
+dendA4_00 dend[62] = new SectionRef()
+dendA4_01 dend[63] = new SectionRef()
+dendA4_010 dend[64] = new SectionRef()
+dendA4_011 dend[65] = new SectionRef()
+dendA4_0110 dend[66] = new SectionRef()
+dendA4_01100 dend[67] = new SectionRef()
+dendA4_01101 dend[68] = new SectionRef()
+dendA4_0111 dend[69] = new SectionRef()
+dendA4_01110 dend[70] = new SectionRef()
+dendA4_011100 dend[71] = new SectionRef()
+dendA4_011101 dend[72] = new SectionRef()
+dendA4_01111 dend[73] = new SectionRef()
+
+objref apic[apicno]
+dendA5_0 apic[0] = new SectionRef()
+dendA5_00 apic[1] = new SectionRef()
+dendA5_01 apic[2] = new SectionRef()
+dendA5_010 apic[3] = new SectionRef()
+dendA5_0100 apic[4] = new SectionRef()
+dendA5_0101 apic[5] = new SectionRef()
+dendA5_011 apic[6] = new SectionRef()
+dendA5_0110 apic[7] = new SectionRef()
+dendA5_01100 apic[8] = new SectionRef()
+dendA5_01101 apic[9] = new SectionRef()
+dendA5_011010 apic[10] = new SectionRef()
+dendA5_011011 apic[11] = new SectionRef()
+dendA5_0110110 apic[12] = new SectionRef()
+dendA5_0110111 apic[13] = new SectionRef()
+dendA5_0111 apic[14] = new SectionRef()
+dendA5_01110 apic[15] = new SectionRef()
+dendA5_01111 apic[16] = new SectionRef()
+dendA5_011110 apic[17] = new SectionRef()
+dendA5_0111100 apic[18] = new SectionRef()
+dendA5_0111101 apic[19] = new SectionRef()
+dendA5_011111 apic[20] = new SectionRef()
+dendA5_0111110 apic[21] = new SectionRef()
+dendA5_01111100 apic[22] = new SectionRef()
+dendA5_01111101 apic[23] = new SectionRef()
+dendA5_011111010 apic[24] = new SectionRef()
+dendA5_011111011 apic[25] = new SectionRef()
+dendA5_0111110110 apic[26] = new SectionRef()
+dendA5_0111110111 apic[27] = new SectionRef()
+dendA5_0111111 apic[28] = new SectionRef()
+dendA5_01111110 apic[29] = new SectionRef()
+dendA5_01111111 apic[30] = new SectionRef()
+dendA5_011111110 apic[31] = new SectionRef()
+dendA5_011111111 apic[32] = new SectionRef()
+dendA5_0111111110 apic[33] = new SectionRef()
+dendA5_01111111100 apic[34] = new SectionRef()
+dendA5_01111111101 apic[35] = new SectionRef()
+dendA5_0111111111 apic[36] = new SectionRef()
+dendA5_01111111110 apic[37] = new SectionRef()
+dendA5_01111111111 apic[38] = new SectionRef()
+dendA5_011111111110 apic[39] = new SectionRef()
+dendA5_011111111111 apic[40] = new SectionRef()
+dendA5_0111111111110 apic[41] = new SectionRef()
+dendA5_01111111111100 apic[42] = new SectionRef()
+dendA5_01111111111101 apic[43] = new SectionRef()
+dendA5_0111111111111 apic[44] = new SectionRef()
+dendA5_01111111111110 apic[45] = new SectionRef()
+dendA5_011111111111100 apic[46] = new SectionRef()
+dendA5_011111111111101 apic[47] = new SectionRef()
+dendA5_0111111111111010 apic[48] = new SectionRef()
+dendA5_01111111111110100 apic[49] = new SectionRef()
+dendA5_01111111111110101 apic[50] = new SectionRef()
+dendA5_0111111111111011 apic[51] = new SectionRef()
+dendA5_01111111111111 apic[52] = new SectionRef()
+dendA5_011111111111110 apic[53] = new SectionRef()
+dendA5_011111111111111 apic[54] = new SectionRef()
+dendA5_0111111111111110 apic[55] = new SectionRef()
+dendA5_0111111111111111 apic[56] = new SectionRef()
+dendA5_01111111111111110 apic[57] = new SectionRef()
+dendA5_01111111111111111 apic[58] = new SectionRef()
+dendA5_011111111111111110 apic[59] = new SectionRef()
+dendA5_0111111111111111100 apic[60] = new SectionRef()
+dendA5_0111111111111111101 apic[61] = new SectionRef()
+dendA5_01111111111111111010 apic[62] = new SectionRef()
+dendA5_01111111111111111011 apic[63] = new SectionRef()
+dendA5_011111111111111110110 apic[64] = new SectionRef()
+dendA5_011111111111111110111 apic[65] = new SectionRef()
+dendA5_011111111111111111 apic[66] = new SectionRef()
+dendA5_0111111111111111110 apic[67] = new SectionRef()
+dendA5_0111111111111111111 apic[68] = new SectionRef()
+dendA5_01111111111111111110 apic[69] = new SectionRef()
+dendA5_011111111111111111100 apic[70] = new SectionRef()
+dendA5_011111111111111111101 apic[71] = new SectionRef()
+dendA5_0111111111111111111010 apic[72] = new SectionRef()
+dendA5_0111111111111111111011 apic[73] = new SectionRef()
+dendA5_01111111111111111111 apic[74] = new SectionRef()
+dendA5_011111111111111111110 apic[75] = new SectionRef()
+dendA5_011111111111111111111 apic[76] = new SectionRef()
+dendA5_0111111111111111111110 apic[77] = new SectionRef()
+dendA5_0111111111111111111111 apic[78] = new SectionRef()

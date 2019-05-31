@@ -1,0 +1,333 @@
+// Double-click on this file to run the code
+
+load_file("nrngui.hoc")			// neuron main menu and some key parameter init (must come first)
+xopen("ri06.nrn")			// geometry
+xopen("spinegeom.nrn")
+
+//Generate 10um segments 
+ii = 0
+tot_nsegs = 0
+forall {
+	if (ii != 0) {
+		mynseg = int((L/10 + 0.9)/2)*2 + 1	
+		if (mynseg == 0) {
+			mynseg = 1 }
+		nseg = mynseg
+	}
+	tot_nsegs = tot_nsegs + nseg
+	ii = ii + 1
+}
+
+//load simulated axon and count segments
+xopen("simulated_axon.nrn")			
+hill {
+	tot_nsegs = tot_nsegs + nseg
+}
+iseg {
+	tot_nsegs = tot_nsegs + nseg
+}
+for jj = 0,1 node[jj] {
+	tot_nsegs = tot_nsegs + nseg
+}
+for jj = 0,2 inode[jj] {
+	tot_nsegs = tot_nsegs + nseg
+}
+
+
+naslopebasal=0				//constant Na conductance along basal dendrites
+dslopebasal=0				//constant K conductance along basal disconnect
+synwait=1000				//time to wait for membrane voltage to equilibrate				
+tstop = 100+synwait			//simulation endtime
+init_routine = 1			// 1 for using initialization routine
+usecvode = 0				// 1 for using cvode
+
+xopen("code_point_processes.hoc")			// point processes (original)
+xopen("code_objects.hoc")			// additional objects (specific to geometry)
+xopen("code_membrane.hoc")			// membrane mechanisms (was init)
+xopen("code_routine_for_runs.hoc")			// contains regular run procedure
+
+
+// these next few lines correct for the fact that the soma is elliptical rather than cylindrical
+// due to an idiosyncrasy of NEURON, you have to do the area call first
+access somaA
+area(0.5)
+correctsoma()
+
+// This procedure initializes the active properties when called from the init() routine
+init_params()
+forall {insert dv}
+insert_pass()
+init_props()
+
+
+// Create spine object, single synapse, and output files
+objref spinearray[1]
+spinehead spinearray[0] =  new SectionRef()
+objref ampasyn, nmdasyn
+ampasyn = new synampa()
+nmdasyn = new synnm()
+objref scalefile
+scalefile=new File()
+
+//set spine neck resistance
+spineneck {Ra=200.00}
+spinehead {Ra=200.00}
+spinehead {
+	insert h
+	insert pas
+	insert kdr
+	insert kap
+	insert kad
+	insert nafast2
+	insert naslowcond2
+}
+spineneck {
+	insert h
+	insert pas
+	insert kdr
+	insert kap
+	insert kad
+	insert nafast2
+	insert naslowcond2
+}
+
+xopen("code_synapse_setup.hoc")
+
+
+//start parallel instance
+objref pc
+pc = new ParallelContext()
+
+print "number of hosts: ", pc.nhost(), "\thost id: ", pc.id() 
+
+//function farmed out to slave nodes
+func distscale() {local key, errval localobj parvec, returnvec 
+	key = $1
+	parvec = $o2
+	returnvec = new Vector(35)
+	returnvec = calc_EPSP_single(parvec.x[0],parvec.x[1],parvec.x[2],parvec.x[3])
+	pc.pack(returnvec)
+	pc.post(key)
+	return key
+}
+
+
+
+obfunc calc_EPSP_single() {localobj outvec, currecord
+	//function to calculate the max deflection due to a single synapse
+	
+	dendval=$1
+	seg=$2
+	useperfa=$3
+	useperfn=$4
+	outvec=new Vector(35)
+	currecord = new Vector()
+	
+	//connect spine to section
+	dend[dendval].sec connect spineneck(0), seg
+	spinearray[0].sec {
+		g_pas=dend[dendval].sec.g_pas(seg)
+		cm=dend[dendval].sec.cm(seg)
+		gbar_nafast2=0
+		gbar_naslowcond2=0
+		//gbar_nafast2=dend[dendval].sec.gbar_nafast2(seg)			//Uncomment for active spines
+		//gbar_naslowcond2=dend[dendval].sec.gbar_naslowcond2(seg)	//Uncomment for active spines
+		gbar_kdr=0
+		gbar_kap=0
+		gbar_kad=0
+		gbar_h=0
+	}	
+	soma.sec() distance()
+	spineneck {
+		g_pas=dend[dendval].sec.g_pas(seg)
+		cm=dend[dendval].sec.cm(seg)
+		gbar_nafast2=0
+		gbar_naslowcond2=0
+		//gbar_nafast2=dend[dendval].sec.gbar_nafast2(seg)			//Uncomment for active spines
+		//gbar_naslowcond2=dend[dendval].sec.gbar_naslowcond2(seg)	//Uncomment for active spines
+		gbar_kdr=0
+		gbar_kap=0
+		gbar_kad=0
+		gbar_h=0
+	}
+	
+	//Run simulations in the following order:
+	//AMPA only, no scaling
+	//AMPA and NMDA, no scaling
+	//AMPA no scaling, NMDA scaling
+	//AMPA only, scaling
+	//AMPA scaling, NMDA no scaling
+	//AMPA and NMDA, scaling
+	dend[dendval].sec {
+		distloc=distance(seg)
+		noscaledAMPAcond=NA
+		noscaledNMDAcond=NN
+		scaledAMPAcond=NA
+		scaledNMDAcond=NN
+		if (useperfa==1) {
+			noscaledAMPAcond=calc_syn_strength(1,50)
+			scaledAMPAcond=calc_syn_strength(1,distloc)
+		}
+		if (useperfn==1) {
+			noscaledNMDAcond=calc_syn_strength(2,50)
+			scaledNMDAcond=calc_syn_strength(2,distloc)
+		}
+		if ((useperfa==1) || (useperfn==1)) {
+			//no scale AMPA only
+			syn_cc(dendval,seg,noscaledAMPAcond,2)
+			syn_nmdacc(dendval,seg,0,1)
+			currecord.record(&nmdasyn.i)
+			run()
+			print currecord.min()
+			outvec.x[0]=distloc
+			outvec.x[1]=dvmax_dv(seg)
+			outvec.x[2]=somaA.dvmax_dv(0.5)
+			outvec.x[3]=spinearray[0].sec.dvmax_dv(0.5)
+			outvec.x[4]=currecord.min()
+			outvec.x[5]=currecord.sum()*dt
+			
+			//no scale AMPA + no scale NMDA
+			syn_nmdacc(dendval,seg,noscaledNMDAcond,2)
+			run()
+			outvec.x[6]=dvmax_dv(seg)
+			outvec.x[7]=somaA.dvmax_dv(0.5)
+			outvec.x[8]=spinearray[0].sec.dvmax_dv(0.5)
+			outvec.x[9]=currecord.min()
+			outvec.x[10]=currecord.sum()*dt
+			
+			//no scale AMPA + scale NMDA
+			syn_nmdacc(dendval,seg,scaledNMDAcond,2)
+			run()
+			outvec.x[11]=dvmax_dv(seg)
+			outvec.x[12]=somaA.dvmax_dv(0.5)
+			outvec.x[13]=spinearray[0].sec.dvmax_dv(0.5)
+			outvec.x[14]=currecord.min()
+			outvec.x[15]=currecord.sum()*dt
+			
+			//scale AMPA only
+			syn_cc(dendval,seg,scaledAMPAcond,2)
+			syn_nmdacc(dendval,seg,0,1)
+			run()
+			outvec.x[16]=dvmax_dv(seg)
+			outvec.x[17]=somaA.dvmax_dv(0.5)
+			outvec.x[18]=spinearray[0].sec.dvmax_dv(0.5)
+			outvec.x[19]=currecord.min()
+			outvec.x[20]=currecord.sum()*dt
+			
+			//scale AMPA + no scale NMDA
+			syn_nmdacc(dendval,seg,noscaledNMDAcond,2)
+			run()
+			outvec.x[21]=dvmax_dv(seg)
+			outvec.x[22]=somaA.dvmax_dv(0.5)
+			outvec.x[23]=spinearray[0].sec.dvmax_dv(0.5)
+			outvec.x[24]=currecord.min()
+			outvec.x[25]=currecord.sum()*dt
+			
+			//scale AMPA + scale NMDA
+			syn_nmdacc(dendval,seg,scaledNMDAcond,2)
+			run()
+			outvec.x[26]=dvmax_dv(seg)
+			outvec.x[27]=somaA.dvmax_dv(0.5)
+			outvec.x[28]=spinearray[0].sec.dvmax_dv(0.5)
+			outvec.x[29]=currecord.min()
+			outvec.x[30]=currecord.sum()*dt
+			outvec.x[31]=noscaledAMPAcond
+			outvec.x[32]=scaledAMPAcond
+			outvec.x[33]=noscaledNMDAcond
+			outvec.x[34]=scaledNMDAcond
+		} else {	//only nonperf, so no synaptic saling
+			//AMPA only
+			syn_cc(dendval,seg,noscaledAMPAcond,2)
+			syn_nmdacc(dendval,seg,0,1)
+			currecord.record(&nmdasyn.i)
+			run()
+			outvec.x[0]=distloc
+			outvec.x[1]=dvmax_dv(seg)
+			outvec.x[2]=somaA.dvmax_dv(0.5)
+			outvec.x[3]=spinearray[0].sec.dvmax_dv(0.5)
+			outvec.x[4]=currecord.min()
+			outvec.x[5]=currecord.sum()*dt
+			
+			//AMPA + NMDA
+			syn_nmdacc(dendval,seg,noscaledNMDAcond,2)
+			run()
+			outvec.x[6]=dvmax_dv(seg)
+			outvec.x[7]=somaA.dvmax_dv(0.5)
+			outvec.x[8]=spinearray[0].sec.dvmax_dv(0.5)
+			outvec.x[9]=currecord.min()
+			outvec.x[10]=currecord.sum()*dt
+			outvec.x[11]=0
+			outvec.x[12]=0
+			outvec.x[13]=0
+			outvec.x[14]=0
+			outvec.x[15]=0
+			outvec.x[16]=0
+			outvec.x[17]=0
+			outvec.x[18]=0
+			outvec.x[19]=0
+			outvec.x[20]=0
+			outvec.x[21]=0
+			outvec.x[22]=0
+			outvec.x[31]=noscaledAMPAcond
+			outvec.x[32]=scaledAMPAcond
+			outvec.x[33]=noscaledNMDAcond
+			outvec.x[34]=scaledNMDAcond
+		}
+	}
+	spineneck disconnect()
+	return outvec
+}
+
+pc.runworker()
+
+//objects for input/output
+objref parvec, threshvec
+parvec=new Vector(4)
+threshvec=new Vector(35)
+proc calcEPSPs() {
+	scalefile.wopen("basal_EPSP_spines_record.dat")
+	scalefile.printf("Dendrite\tSegment\tAMPA_perf(1)_or_nonperf(0)\tNMDA_perf(1)_or_nonperf(0)\tDistance_from_soma\tdV_dendritic_segment\tdV_soma\tdV_spine\tMax_current\tTotal_charge\tAMPA_conductance\tNMDA_conductance\tAMPA_scaling\tNMDA_scaling\n")
+	somaA distance()
+	for m=1,basalno-1 {
+		dend[m].sec() {
+			for p=0,nseg+1 {
+				checkdist=distance(p/(nseg+1))
+				if (checkdist>50) {
+					for nn=0,1 {
+						parvec.x[0]=m			//dendrite number
+						parvec.x[1]=p/(nseg+1)	//section 
+						parvec.x[2]=nn			//perf or nonperf
+						parvec.x[3]=nn
+						mmtag=1000000*m+10000*p+100*nn+nn
+						pc.submit("distscale",mmtag,parvec)	//send out the error calculations
+					}
+				}
+			}
+		}
+	}
+	
+	//collect error values
+	while (pc.working()) {	
+		key = pc.retval()	//retrieve the tag
+		pc.look_take(key)	//remove the tag/job from the bulletin
+		
+		threshvec = pc.upkvec()	//unpack the error value associated with the tag
+		
+		print "received key ",key
+		dno=int(key/1000000)
+		sno=int((key-dno*1000000)/10000)
+		nno=int((key-dno*1000000-sno*10000)/100)
+		mmo=key-dno*1000000-sno*10000-nno*100
+		scalefile.printf("%d\t%d\t%d\t%d\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\tAMPA no scale NMDA no scale\n",dno,sno,nno,mmo,threshvec.x[0],threshvec.x[6],threshvec.x[7],threshvec.x[8],threshvec.x[9],threshvec.x[10],threshvec.x[31],threshvec.x[33])
+		if (nno==1) {
+	       	        scalefile.printf("%d\t%d\t%d\t%d\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\tAMPA no scale NMDA scale\n",dno,sno,nno,mmo,threshvec.x[0],threshvec.x[11],threshvec.x[12],threshvec.x[13],threshvec.x[14],threshvec.x[15],threshvec.x[31],threshvec.x[34])
+                	scalefile.printf("%d\t%d\t%d\t%d\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\tAMPA scale NMDA no scale\n",dno,sno,nno,mmo,threshvec.x[0],threshvec.x[21],threshvec.x[22],threshvec.x[23],threshvec.x[24],threshvec.x[25],threshvec.x[32],threshvec.x[33])
+	                scalefile.printf("%d\t%d\t%d\t%d\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\tAMPA scale NMDA scale\n",dno,sno,nno,mmo,threshvec.x[0],threshvec.x[26],threshvec.x[27],threshvec.x[28],threshvec.x[29],threshvec.x[30],threshvec.x[32],threshvec.x[34])
+		}
+		scalefile.flush()
+	}
+	scalefile.close()
+}
+
+
+calcEPSPs()

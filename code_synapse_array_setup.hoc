@@ -1,0 +1,77 @@
+//Procedures and functions to place synapses with AMPA and NMDA conductances
+
+proc syn_cc_array() {			//procedure to place synapse with AMPA conductance
+	dendno=$1
+	secno=$2
+	gsyn=$3
+	index=$4
+	option=2
+	if (option==1) {
+		dend[dendno].sec {ampasyn[index].loc(secno)}
+	} else {
+		spineheadarray[index].sec {ampasyn[index].loc(0.5)}
+	
+	}
+	ampasyn[index].gmax = gsyn
+	ampasyn[index].tau0 = 0.2
+	ampasyn[index].tau1 = 2
+	ampasyn[index].e = 0
+	ampasyn[index].onset = synwait
+	
+}
+
+proc syn_nmdacc_array() {		//procedure to place synapse with NMDA conductance	
+	dendno=$1
+	secno=$2
+	gsyn=$3
+	index=$4
+	option=2
+	if (option==1) {
+		dend[dendno].sec {nmdasyn[index].loc(secno)}
+	} else {
+		spineheadarray[index].sec {nmdasyn[index].loc(0.5)}
+	}
+	nmdasyn[index].gmax = gsyn
+	nmdasyn[index].onset = synwait
+}
+
+//conductance values based on EM data
+parta=0.00007	
+partn=0.00006	
+NA=3.95*parta		//nonperforated synapse AMPA 
+PAp=8.01*parta		//proximal perforated synapse AMPA
+PAm=11.60*parta		//middle perforated synapse AMPA
+PAd=12.43*parta		//distal perforated synapse AMPA
+NN=2.50*partn		//nonperforated synapse NMDA
+PNp=8.29*partn		//proximal perforated synapse NMDA
+PNm=5.90*partn		//middle perforated synapse NMDA
+PNd=5.95*partn		//distal perforated synapse NMDA
+
+func calc_syn_strength() {local type
+	//function to calculate synaptic strength based on distance from the soma, using EM derived data for linear conductance change
+	type=$1		//1=AMPA, 2=NMDA
+	distval=$2
+	if 	(type==1) {
+		if (distval<135) {
+			return (0.0653*distval+2.786)*parta
+		} else {
+			return (0.0166*distval+9.359)*parta
+		}
+	} else {
+		if (distval<135) {
+			return (-0.0435*distval+11.77)*partn
+		} else {
+			return (-0.001*distval+6.035)*partn
+		}
+	}
+}
+
+func findpoint() {
+	//pick a random point with linearly decreasing probability, mimicking the nonperforated synapse scaling from the data
+	dendlength=$1
+	point=$2
+	fb=-0.02*dendlength*dendlength+(5.8*dendlength)
+	outpoint=25*(5.8-sqrt(5.8*5.8-0.08*point*fb))/dendlength
+	return outpoint
+}
+

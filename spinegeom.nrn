@@ -1,0 +1,30 @@
+create spinehead,spineneck
+
+//neckleng=1.225, neckdiam=0.25, Ra=200 yields 50MO spines
+headradius=0.5
+neckleng=3.0625
+neckdiam=0.125
+//neckdiam=0.088388348
+
+connect spinehead(0),spineneck(1)
+
+spinehead {  nseg=7
+             pt3dclear()
+             for i=0,nseg-1 {
+                tx=-(i*2*headradius)/(nseg-1)
+                td=2*sqrt(headradius^2-(tx+headradius)^2)
+                if (td<neckdiam) {
+                       td = neckdiam
+                }
+                pt3dadd(tx,0,0,td)
+             }
+          }
+
+spineneck { nseg=7
+            pt3dclear()
+            for j = 0,nseg-1 {
+               tx=(j*neckleng)/(nseg-1)
+               pt3dadd(tx,0,0,neckdiam)
+            }
+          }
+

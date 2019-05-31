@@ -1,0 +1,150 @@
+objref cvode
+cvode = new CVode()
+
+proc run() {
+	
+	
+	stdinit()
+	print Vrestsoma
+	continuerun(tstop)
+	
+}
+
+proc adjust_h() {
+
+	init_h5(0.7)
+	init()
+	
+}
+
+proc init() { local dtsav
+
+	dtsav = dt
+	
+	cvode.active(0)
+	reinit_props()
+	
+	v_init = Vrest		// v_init is the value displayed in the run control panel
+	finitialize(v_init)
+	
+	if (init_routine == 1) {
+		
+		dtsav = dt
+		dt = 10
+		t = 1e6
+			
+		printf("\n")
+		print "Initializing"
+			
+		for i = 0,60 {
+			fadvance()
+			printf(".")
+		}	
+		
+		
+		finitialize()
+		printf("\n")
+		
+	}		
+	
+		dt = dtsav
+		t = 0
+	
+		if (usecvode == 1) {
+			print "Turn on cvode after complete initialization"
+			cvode.active(1)
+			cvode.atol(1e-4)
+			cvode.re_init()
+			//cvode.maxstep(5)
+
+		} 
+	
+		ss_save()
+		ss_subtract()
+}
+
+proc advance() {
+	
+	fadvance()
+	ss_subtract()
+	
+}
+
+
+proc ss_save() {
+
+	Vrestsoma = soma.sec.vrest_dv(0.5)
+	Vrestdend = dend.sec.vrest_dv(0.15625)
+	Vrestdendprox = dendprox.sec.vrest_dv(0.75)
+
+	
+	i = 0
+	forall {
+		for (x) {
+			if (x != 0 && x != 1) {
+				vrest[i] = v(x)
+				vss[i] = v(x)
+				i+=1
+			}
+		}
+	}
+	
+
+}
+
+proc ss_subtract() {
+
+	vsoma = soma.sec.v(0.5) - Vrestsoma
+	vdend = dend.sec.v(0.15625) - Vrestdend
+	vdendprox = dendprox.sec.v(0.75) - Vrestdendprox
+	
+}
+
+proc clamp_cc() {
+
+	somaA {
+		elecstim.del = $1
+		elecstim.dur = $2
+		elecstim.amp = $3
+	}
+}
+
+/*
+proc holding_cc() {
+
+	somaA {
+		elecstim2.del = $1
+		elecstim2.dur = $2
+		elecstim2.amp = $3
+	}
+	
+	 somaA {
+		elecstim3.del = 730
+		elecstim3.dur = 400
+		elecstim3.amp = -0.025
+	}
+}
+
+
+proc syn_cc() {	
+
+	
+	dendA5_01111111110 {
+		
+		nosyns = $1
+		for nn = 0, nosyns - 1 {
+			
+			ampasyn[nn].loc($2)
+			ampasyn[nn].gmax = $3
+			ampasyn[nn].tau0 = $4
+			ampasyn[nn].tau1 = $5
+			ampasyn[nn].e = $6
+			ampasyn[nn].onset = $7
+			
+		}
+	}
+	
+	
+}
+
+*/

@@ -1,0 +1,67 @@
+// creates and specifies location of point processes
+// electrodes (for current injection) and synapses
+// also defines some useful variables for accessing sections
+
+
+objectvar elecstim
+somaA elecstim = new IClamp(0.5)
+/*
+objectvar elecstim2
+somaA elecstim2 = new IClamp(0.5)
+
+objectvar elecstim3
+somaA elecstim3 = new IClamp(0.5)
+
+objectvar currinjpsp
+somaA currinjpsp = new currinj(0.5)
+
+numsynapses = 5000
+
+objref ampasyn[numsynapses]
+
+
+for i = 0,numsynapses - 1 {
+	ampasyn[i] = new synampa(0.5)
+}
+*/
+// note that distances are corrected for difference between soma(0) and soma(0.5), which is 13 um
+
+objref soma, dend, dendprox, basal, tuft, psyn
+somaA soma = new SectionRef()  			   		// somatic recording site
+dendA5_0111111111111111 dend = new SectionRef() 	 	// dendritic recording site: 404 um at 1.0, 365 at 0.5
+dendA2_0110 basal = new SectionRef() 			   	// basal recording site: xxx um at 0.5
+dendA5_011111011 tuft = new SectionRef()			// tuft recording site: xxx um at 0.5
+dendA5_0 dendprox = new SectionRef()				// proximal dendritic recording site for Metz paper (2007)
+
+
+// Create section references in order to access children of primary apical dendrite
+
+objref sref[17]
+
+dendA5_0 sref[0] = new SectionRef() 
+dendA5_01 sref[1] = new SectionRef() 
+dendA5_011 sref[2] = new SectionRef() 
+dendA5_0111 sref[3] = new SectionRef() 
+dendA5_01111 sref[4] = new SectionRef() 
+dendA5_011111 sref[5] = new SectionRef() 
+dendA5_0111111 sref[6] = new SectionRef() 
+dendA5_01111111 sref[7] = new SectionRef() 
+dendA5_011111111 sref[8] = new SectionRef() 
+dendA5_0111111111 sref[9] = new SectionRef() 
+dendA5_01111111111 sref[10] = new SectionRef() 
+dendA5_011111111111 sref[11] = new SectionRef() 
+dendA5_0111111111111 sref[12] = new SectionRef() 
+dendA5_01111111111111 sref[13] = new SectionRef() 
+dendA5_011111111111111 sref[14] = new SectionRef() 
+dendA5_0111111111111111 sref[15] = new SectionRef() 
+dendA5_01111111111111111 sref[16] = new SectionRef() 
+
+// Create new list for attaching children to determine A-type and Ih-density
+
+objref temp_list
+temp_list = new SectionList()
+
+// Create temporary string object for storing names
+
+objref temp_strobj
+temp_strobj = new StringFunctions()

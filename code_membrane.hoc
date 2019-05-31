@@ -1,0 +1,378 @@
+// this file contains procedures used to set the membrane properties
+limit=0.05
+
+proc init_params() {
+	// initialize user-defined membrane parameters
+	celsius = 35
+	global_ra = 139.09	 // internal resistivity in ohm-cm
+	Cm = 1.70944             // specific membrane capacitance in uF/cm^2
+	Rn = 50			 // nodal resistivity
+ 	Vleak = -50		 // leak reversal in Control
+	Vrest = -60		 // resting potential -63 in control
+	target = 59.42      	 // input resistance target in CsCl
+	gnabarmax = 0.05
+	gnabarmin = 0.05
+	distslowfrac = 1
+	gca = 0.000
+	isegfactor = 10
+	isegfrac = 0.8
+	kascale = 1.0
+	hscale = 1.0
+	basalfrac=0.6
+	
+	// attenuation is 0.515 in CsCl for this cell
+	// passive membrane parameters determined by fitting Cs data
+	// nonuniform Rm values and nonuniform gh
+	global_ra = 117.15
+	rmsoma = 2.8201e+05
+	rmend = 33938
+	rmhalfdis = 186.04
+	rmsteep = 31.681
+	Cm = 1.5657
+	Vrest = -63
+	minq = 0.038794
+	//maxq = 162.77
+	maxq = 20
+	qhalfdis = 316.65
+	qsteep = 20.001
+	erevh_h = -25
+	zeta_h = 10.917
+	a0_h = 0.00028504
+	qten_h = 4.5
+	
+	// Active properties start here
+
+	// User-defined properties for K(A) current
+	gkap = 0.1
+	gkad = 0.1
+	gkaaxon = 0.05
+	gkanode = gkap * 0.2
+	dlimit = 450              
+	dprox = 100               
+	dslope = 0.005
+		
+	// User-defined properties for Kdr current
+	gkdr = 0.1
+	gkdrsoma=gkdr
+
+	// User-defined properties for Na current
+	gnabar = 0
+	gnanode = 1		// conductance for sodium at node	
+	nalimit = 275         	// cut-off limit for increase of sodium conductance 
+	naslope = 0.00         	// slope of sodium channel density
+}
+
+
+proc insert_pass() {
+	// insert and initialize membrane properties
+
+	forsec all_dendrites {
+		insert pas 
+		Ra = global_ra 
+		e_pas = Vleak
+	}
+	
+	print "Inserting spines and setting spine scale values"
+	forall {insert spines scale_spines = 1.0}
+	forsec all_dendrites 	{ insert spines scale_spines=1.0 }
+	forsec no_spines 	{ scale_spines = 1.0 }
+	forsec basals 		{ scale_spines = 2.7 }
+	forsec med_spines_rad 	{ scale_spines = 1.2 }
+	forsec max_spines_rad 	{ scale_spines = 1.6 }
+	forsec thin_rad 	{ scale_spines = 2.6 }
+	forsec med_spines_LM 	{ scale_spines = 1.1 }
+	forsec thin_LM 		{ scale_spines = 1.2 }
+
+	init_pass2(Cm)		// initialize nonuniform passive membrane
+	print "Inserting nonuniform passive membrane"
+	printf("rmsoma = %3.0f, rmend = %3.0f, rmsteep = %3.0f\n",rmsoma, rmend, rmsteep)	
+}
+
+proc insert_h() {
+	printf("Inserting sag conductance in all segments\n")
+	
+	forsec all_dendrites { 
+		insert h 
+		gbar_h = 0 
+	}
+	init_h5(a0_h*1000)	// initialize nonuniform Rm, nonuniform Ih
+}
+
+proc insert_ka() {
+	printf("Inserting K(A) conductance in all segments\n")
+	
+	forall {
+		insert kap
+   		insert kad
+   		gbar_kap = 0
+   		gbar_kad = 0 
+	}
+	init_ka()	
+}
+
+proc insert_kdr() {
+	printf("Inserting Kdr conductance in all segments\n")
+	
+	forall {
+		insert kdr
+		gbar_kdr = 0
+	}
+	init_kdr()
+}
+
+
+proc insert_na() {
+	printf("Inserting Na conductance in all segments\n")
+	
+	forall {
+		insert naslowcond2
+		insert nafast2
+   	}
+	init_na()
+}
+
+
+			
+proc init_pass2() {		
+	//  Initialize parameters for nonuniform Rm
+	// sigmoidal decrease in Rm from rmsoma to rmend
+	// rmsoma and rmend, and rmhalfdis and rmsteep are set in init_params
+	// function applies to basal dendrites also
+	Cm = $1
+	
+	soma.sec distance()
+	
+	forsec all_dendrites {
+		for (x) {
+			dis = distance(x)
+			rmpoint = rmend + (rmsoma - rmend)/(1 + exp((dis - rmhalfdis)/rmsteep))
+			g_pas(x) = 1/(rmpoint/scale_spines)
+		}
+		cm = Cm * scale_spines 
+		Ra = global_ra
+	}
+
+	hill {
+		insert pas
+		cm = Cm
+		for (x) {
+			dis = distance(x)
+			rmpoint = rmend + (rmsoma - rmend)/(1 + exp((dis - rmhalfdis)/rmsteep))
+			g_pas(x) = 1/(rmpoint/scale_spines)
+		}
+	}
+		
+	iseg {
+		insert pas
+		cm = Cm
+		for (x) {
+			dis = distance(x)
+			rmpoint = rmend + (rmsoma - rmend)/(1 + exp((dis - rmhalfdis)/rmsteep))
+			g_pas(x) = 1/(rmpoint/scale_spines) 
+		}
+	}
+		
+	for i = 0,2 inode[i] { 
+		insert pas
+	   	cm = Cm
+		for (x) {
+			dis = distance(x)
+			rmpoint = rmend + (rmsoma - rmend)/(1 + exp((dis - rmhalfdis)/rmsteep))
+			g_pas(x) = 1/(rmpoint/scale_spines) 
+		}
+	}
+		
+	for i = 0,1 node[i] {
+		insert pas	
+		cm = Cm
+		for (x) {
+			insert pas
+			dis = distance(x)
+			rmpoint = rmend + (rmsoma - rmend)/(1 + exp((dis - rmhalfdis)/rmsteep))
+			g_pas(x) = 1/(rmpoint/scale_spines) 
+		}
+	}	
+}
+			
+			
+
+			
+proc init_h5() {
+	// Initialize nonuniform H conductance
+	// scale up sag conductance as a sigmoidal function of distance from the soma
+	// q = minq+(maxq-minq)/(1+exp((-dis-qhalfdis)/qsteep))
+	// basals are set to the same value as the soma
+	// set minq, maxq, and qhalfdis and qsteep in init_params
+	
+	a0_h = $1/1000
+
+	soma.sec distance()
+	
+	forsec all_dendrites {
+		for (x) {
+			dis = distance(x)
+			hpoint = minq + (maxq - minq)/(1 + exp(-(dis - qhalfdis)/qsteep))
+			gbar_h(x) = hpoint * scale_spines
+		}
+	}
+	
+	soma.sec distance()
+	forsec basals {
+		for (x) {
+			gbar_h(x) = minq * scale_spines
+		}
+	}
+}
+
+
+proc init_kdr() {
+	// Initialize parameters for Kdr channels
+
+	forall {
+		gbar_kdr = gkdr
+	}
+	soma.sec distance()
+	forsec new_basals {
+		for (x) {
+			xdist=distance(x)
+			kdrfrac=(1-xdist*dslopebasal)
+			if (kdrfrac < limit) {
+				kdrfrac = limit
+			}
+			gbar_kdr(x)=gkdr*1.4*kdrfrac
+		}
+	}
+}
+
+
+proc init_na() {
+	// Initialize parameters for Na channels
+	nalimit = 300
+	naslope = (gnabarmin-gnabarmax)/nalimit
+	
+	soma.sec distance()
+	
+	somaA {
+		gbar_nafast2 = gnabarmax
+		gbar_naslowcond2 = 0
+	}
+	
+	forsec new_basals {
+		for (x) {
+			xdist=distance(x)
+			nafrac=(1-xdist*naslopebasal)
+			if (nafrac < limit) {
+				nafrac = limit
+			}
+			gbar_nafast2(x)=gnabarmax*nafrac*basalfrac
+			gbar_naslowcond2 = 0    		
+		}
+	}
+	
+	forsec apicals {
+		for (x) { 
+			xdist = distance(x)
+            if (xdist>nalimit) {
+				xdist=nalimit
+            }
+            gbar_nafast2(x)=(gnabarmax+(xdist*naslope))*(1-(distslowfrac*(xdist/nalimit)))
+            gbar_naslowcond2(x)=(gnabarmax+(xdist*naslope))-gbar_nafast2(x)
+        }
+    }
+	
+	hill {
+		gbar_nafast2= gnabarmax
+		gbar_naslowcond2 = 0
+	}
+	
+	iseg {
+		for (x) { 
+			gbar_nafast2(x) = 0
+			if (x < isegfrac) {
+        		gbar_nafast2(x) = gnabarmax
+       		} else {
+           		gbar_nafast2(x) = isegfactor * gnabarmax
+       		}
+   		}
+	}
+	
+	for i = 0,2 inode[i] { 
+	   	gbar_nafast2 = gnabar
+	}
+	
+	for i = 0,1 node[i] {
+		gbar_nafast2 = gnanode
+	} 
+}
+
+
+proc init_ka() {
+	// Initialize parameters for K(A) channels
+	soma.sec distance()
+	
+	somaA {
+		gbar_kap = gkap * kascale
+	}
+	
+	forsec new_basals {
+		for (x) {
+			xdist=distance(x)
+			kafrac=(1-xdist*dslopebasal)
+			if (kafrac < limit) {
+				kafrac = limit
+			}
+			gbar_kap(x)=gkap*1.4*kafrac*kascale
+		}
+	}
+	
+	forsec apicals {
+		for (x) { 
+			xdist = distance(x)
+			if (xdist > dlimit) {
+			  	xdist = dlimit
+			}
+			if (x!=1) {
+				gbar_kap(x) = 0
+				gbar_kad(x) = 0
+				if (xdist > dprox) {
+			       	gbar_kad(x) = gkad * (1 + xdist * dslope) * kascale
+				} else {
+				        gbar_kap(x) = gkap * (1 + xdist * dslope) * kascale
+				}
+			}
+    	}
+    }
+	
+	hill {
+		gbar_kdr = gkaaxon
+	}
+		
+	iseg {
+		gbar_kdr = gkaaxon
+	}
+		
+	for i = 0,2 inode[i] { 
+	   	gbar_kdr = gkaaxon 
+	}
+		
+	for i = 0,1 node[i] {
+		gbar_kdr = gkaaxon * 0.2
+	} 
+}
+
+
+proc init_props() {
+	insert_h()
+	insert_kdr()
+	insert_na()
+	insert_ka()
+}
+
+proc reinit_props() {
+	k = 0
+	init_pass2(Cm)		// initialize nonuniform passive membrane
+	init_h5(a0_h*1000)	// initialize nonuniform Rm, nonuniform Ih
+	init_kdr()
+	init_ka()
+	init_na()
+}
